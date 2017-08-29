@@ -33,6 +33,12 @@ int GroupMember::failureCounter() const {
     return m_failureCounter;
 }
 
+void GroupMember::resetCounters()
+{
+    m_failureCounter = 0;
+    m_responseCounter = 0;
+}
+
 void GroupMember::incrementResponseCounter()
 {
     m_failureCounter = 0;

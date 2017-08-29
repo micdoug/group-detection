@@ -11,7 +11,7 @@ class Node final {
 public:
     explicit Node(int id);
     ~Node() = default;
-
+    int id() const;
     void addNeighbor(int nid);
     void removeNeighbor(int nid);
 

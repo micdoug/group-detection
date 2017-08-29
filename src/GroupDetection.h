@@ -6,8 +6,8 @@
 #define GROUP_DETECTION_GROUPDETECTION_H
 
 #include "Node.h"
-#include "GroupMember.h"
-#include <map>
+#include "Group.h"
+#include <memory>
 #include <vector>
 
 class GroupDetection final {
@@ -16,17 +16,22 @@ public:
     ~GroupDetection() = default;
 
     Node &node();
-    const std::map<int, GroupMember> &currentGroup() const;
-    const std::map<int, GroupMember> &transientGroup() const;
-    const std::vector<std::map<int, GroupMember>> &groupHistory() const;
     
+    const std::vector<std::unique_ptr<Group>> &groupHistory() const;
     void processGroups();
+    Group &currentGroup();
+    Group &transientGroup();
+
+    // Static members
+    static int ms_threshold;
+    static double ms_destructionCoefficient;
 
 private:
+    
     Node m_node;
-    std::map<int, GroupMember> m_currentGroup;
-    std::map<int, GroupMember> m_transientGroup;
-    std::vector<std::map<int, GroupMember>> m_groupHistory;
+    std::unique_ptr<Group> m_currentGroup;
+    std::unique_ptr<Group> m_transientGroup;
+    std::vector<std::unique_ptr<Group>> m_groupHistory;
 };
 
 

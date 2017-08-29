@@ -34,6 +34,11 @@ const std::set<int> &Node::neighbors() const
     return m_neighbors;
 }
 
+int Node::id() const 
+{
+    return m_id;
+}
+
 void Node::removeNeighbor(int nid)
 {
     // Check if the node is really a neighbor

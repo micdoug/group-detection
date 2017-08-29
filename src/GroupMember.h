@@ -18,6 +18,7 @@ public:
     int responseCounter() const;
     int failureCounter() const;
 
+    void resetCounters();
     void incrementResponseCounter();
     void incrementFailureCounter();
 

@@ -9,6 +9,8 @@ file(GLOB SOURCE_FILES
     "../src/Node.*"
     "../src/Connection.*"
     "../src/GroupMember.*"
+    "../src/Group.*"
+    "../src/GroupDetection.*"
 )
 
 add_executable(group_detection_tests ${SOURCE_FILES})

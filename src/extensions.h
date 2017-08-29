@@ -3,39 +3,67 @@
 
 #include <set>
 #include <algorithm>
-#include <iostream>
+#include <sstream>
 
-template<typename MAP>
-std::set<typename MAP::key_type> getKeys(const MAP &map)
+namespace ext
 {
-    std::set<typename MAP::key_type> set;
-    for(const auto &pair: map)
+    template<typename MAP>
+    std::set<typename MAP::key_type> getKeys(const MAP &map)
     {
-        set.insert(pair.first);
+        std::set<typename MAP::key_type> set;
+        for(const auto &pair: map)
+        {
+            set.insert(pair.first);
+        }
+        return set;
     }
-    return set;
-}
 
-template<typename T>
-std::set<T> intersection(const std::set<T> &setA, const std::set<T> &setB)
-{
-    std::set<T> result;
-    std::set_intersection(setA.begin(), setA.end(), setB.begin(), setB.end(), std::inserter(result, result.begin()));
-    return result;
-}
+    template<typename T>
+    std::set<T> set_intersection(const std::set<T> &setA, const std::set<T> &setB)
+    {
+        std::set<T> result;
+        std::set_intersection(setA.begin(), setA.end(), setB.begin(), setB.end(), std::inserter(result, result.begin()));
+        return std::move(result);
+    }
 
-template<typename T>
-std::set<T> difference(const std::set<T> &setA, const std::set<T> &setB)
-{
-    std::set<T> result;
-    std::set_difference(setA.begin(), setA.end(), setB.begin(), setB.end(), std::inserter(result, result.begin()));
-    return result;
-}
+    template<typename T>
+    std::set<T> set_difference(const std::set<T> &setA, const std::set<T> &setB)
+    {
+        std::set<T> result;
+        std::set_difference(setA.begin(), setA.end(), setB.begin(), setB.end(), std::inserter(result, result.begin()));
+        return std::move(result);
+    }
 
-template<typename MAP>
-bool containsKey(const MAP &map, typename MAP::key_type key)
-{
-    return map.find(key) != map.end();
+    template<typename T>
+    std::set<T> set_union(const std::set<T> &setA, const std::set<T> &setB)
+    {
+        std::set<T> result;
+        std::set_union(setA.begin(), setA.end(), setB.begin(), setB.end(), std::inserter(result, result.begin()));
+        return std::move(result);
+    }
+
+    template<typename MAP>
+    bool containsKey(const MAP &map, typename MAP::key_type key)
+    {
+        return map.find(key) != map.end();
+    }
+
+    template<typename MAP>
+    std::string to_string(const MAP &map)
+    {
+        std::ostringstream stream;
+        stream << "{ ";
+        for(const auto &value: map)
+        {
+            stream << value << " ";
+        }
+        stream << "}";
+        return stream.str();
+    }
+
+    
+    
+
 }
 
 #endif
