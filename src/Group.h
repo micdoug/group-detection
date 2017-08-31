@@ -14,10 +14,10 @@ public:
     ~Group() = default;
 
     std::set<int> memberKeys() const;
-    int created() const;
-    void setCreated(const int time);
-    int destroyed() const;
-    void setDestroyed(const int time);
+    long created() const;
+    void setCreated(const long time);
+    long destroyed() const;
+    void setDestroyed(const long time);
     void addMember(const int id);
     void removeMember(const int id);
     int size() const;
@@ -28,8 +28,8 @@ public:
 
     GroupMember &operator[](int key);
 private:
-    int m_created;
-    int m_destroyed;
+    long m_created;
+    long m_destroyed;
     std::map<int, std::unique_ptr<GroupMember>> m_members;
 };
 

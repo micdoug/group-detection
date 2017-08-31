@@ -42,33 +42,33 @@ const std::vector<std::unique_ptr<Group>> &GroupDetection::groupHistory() const 
     return m_groupHistory;
 }
 
-void GroupDetection::processGroups()
+void GroupDetection::process(long time)
 {
     // Update currentGroup and transientGroup structures
     auto transient = transientGroup().memberKeys();
     auto current = currentGroup().memberKeys();
 
-    cout << "Transient group: " << transientGroup().to_string() << endl;
-    cout << "CurrentGroup group: " << currentGroup().to_string() << endl;
+    //cout << "Transient group: " << transientGroup().to_string() << endl;
+    //cout << "CurrentGroup group: " << currentGroup().to_string() << endl;
 
     // Transient group
     auto tg_responses = ext::set_intersection(transient, m_node.neighbors());
     auto tg_failures = ext::set_difference(transient, m_node.neighbors());
 
-    cout << "tg_responses: " << ext::to_string(tg_responses) << endl;
-    cout << "tg_failures: " << ext::to_string(tg_failures) << endl;
+    //cout << "tg_responses: " << ext::to_string(tg_responses) << endl;
+    //cout << "tg_failures: " << ext::to_string(tg_failures) << endl;
 
     // Current group
     auto cg_responses = ext::set_intersection(current, m_node.neighbors());
     auto cg_failures = ext::set_difference(current, m_node.neighbors());
 
-    cout << "cg_responses: " << ext::to_string(cg_responses) << endl;
-    cout << "cg_failures: " << ext::to_string(cg_failures) << endl;
+    //cout << "cg_responses: " << ext::to_string(cg_responses) << endl;
+    //cout << "cg_failures: " << ext::to_string(cg_failures) << endl;
 
     // New nodes
     auto new_nodes = ext::set_difference(m_node.neighbors(), ext::set_union(transient, current));
 
-    cout << "new nodes: " << ext::to_string(new_nodes) << endl;
+    //cout << "new nodes: " << ext::to_string(new_nodes) << endl;
     
 
     // Begin: processing transient group
@@ -80,6 +80,11 @@ void GroupDetection::processGroups()
             currentGroup().addMember(resp);
             transientGroup().removeMember(resp);
             currentGroup()[resp].setIsActive(true);
+            // Check if the group is getting its first member now
+            if (currentGroup().size() == 2)
+            {
+                currentGroup().setCreated(time);
+            }
         }
     }
     for (const int fail: tg_failures)
@@ -114,7 +119,7 @@ void GroupDetection::processGroups()
     // Adding new nodes to transient group
     for (const int nnode: new_nodes)
     {
-        cout << "Adding node " << std::to_string(nnode) << "." << std::endl;
+        //cout << "Adding node " << std::to_string(nnode) << "." << std::endl;
         transientGroup().addMember(nnode);
         transientGroup()[nnode].incrementResponseCounter();
     }
@@ -127,10 +132,11 @@ void GroupDetection::processGroups()
     
     double proportion = inactive_nodes * 1.0 / total_nodes;
     // If the proportion of inactive is greater than the coefficient it is added in the history
-    cout << "Proportion of inactive nodes " << proportion << std::endl;
+    //cout << "Proportion of inactive nodes " << proportion << std::endl;
     if (proportion > ms_destructionCoefficient)
     {
-        cout << "Destroying group" << endl;
+        //cout << "Destroying group" << endl;
+        currentGroup().setDestroyed(time);
         m_groupHistory.push_back(std::move(m_currentGroup));
         // Resets current group and transient group
         m_currentGroup = make_unique<Group>();
@@ -139,5 +145,5 @@ void GroupDetection::processGroups()
         currentGroup()[m_node.id()].setIsActive(true);
         m_transientGroup = make_unique<Group>();
     }
-    cout << endl << endl;
+    //cout << endl << endl;
 }

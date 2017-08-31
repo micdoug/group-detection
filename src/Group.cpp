@@ -10,8 +10,8 @@ GroupMember &Group::operator[](int key)
 }
 
 Group::Group():
-    m_created{-1},
-    m_destroyed{-1}
+    m_created{-1L},
+    m_destroyed{-1L}
 {
 
 }
@@ -21,22 +21,22 @@ std::set<int> Group::memberKeys() const
     return ext::getKeys(m_members);
 }
 
-int Group::created() const
+long Group::created() const
 {
     return m_created;
 }
 
-void Group::setCreated(const int time)
+void Group::setCreated(const long time)
 {
     m_created = time;
 }
 
-int Group::destroyed() const 
+long Group::destroyed() const 
 {
     return m_destroyed;
 }
 
-void Group::setDestroyed(const int time)
+void Group::setDestroyed(const long time)
 {
     m_destroyed = time;
 }

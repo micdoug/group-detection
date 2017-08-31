@@ -52,12 +52,13 @@ namespace ext
     std::string to_string(const MAP &map)
     {
         std::ostringstream stream;
-        stream << "{ ";
+        stream << "[";
         for(const auto &value: map)
         {
-            stream << value << " ";
+            stream << " " << value << ",";
         }
-        stream << "}";
+        stream.seekp(-1, std::ios_base::cur);
+        stream << " ]";
         return stream.str();
     }
 

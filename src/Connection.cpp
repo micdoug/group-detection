@@ -5,17 +5,46 @@
 #include "Connection.h"
 #include <string>
 #include <stdexcept>
+#include <sstream>
+#include <algorithm>
+#include <locale>
 
 Connection::Connection(std::istream &input)
 {
+    // Get the current line of the stream
+    std::string line;
+    std::getline(input, line);
+
+     ;
+    if (std::find_if_not(line.begin(), line.end(), std::iswspace) == line.end())
+    {
+        throw std::runtime_error("Blank line");
+    }
+
+    std::istringstream lineStream(line);
+
     std::string temp;
-    input >> m_time;
-    input >> temp;
+    double time;
+    lineStream >> time;
+    m_time = time;
+    if (lineStream.fail())
+    {
+        throw std::invalid_argument("Invalid time value at line: " + line);
+    }
+    lineStream >> temp;
+    if (temp != "CONN")
+    {
+        throw std::invalid_argument("The type of event must be CONN! Invalid data at line: " + line);
+    }
     int nodeA, nodeB;
-    input >> nodeA
-          >> nodeB;
+    lineStream >> nodeA
+               >> nodeB;
+    if (lineStream.fail())
+    {
+        throw std::invalid_argument("Invalid node ids at line: " + line);
+    }
     m_nodes = std::tuple<int, int>(nodeA, nodeB);
-    input >> temp;
+    lineStream >> temp;
     if (temp == "up")
     {
         m_type = ConnectionType::UP;
@@ -26,7 +55,7 @@ Connection::Connection(std::istream &input)
     }
     else
     {
-        throw std::invalid_argument("Invalid connection type " + temp);
+        throw std::invalid_argument("Invalid connection type at line: " + line);
     }
     this->checkInvariant();
 }

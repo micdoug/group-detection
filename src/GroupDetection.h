@@ -18,7 +18,7 @@ public:
     Node &node();
     
     const std::vector<std::unique_ptr<Group>> &groupHistory() const;
-    void processGroups();
+    void process(long time);
     Group &currentGroup();
     Group &transientGroup();
 
