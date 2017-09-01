@@ -196,6 +196,7 @@ void Simulator::updateGroups(long time)
     {
         end = m_detectors.size();
     }
+    
     vector<future<void>> threads;
 
     // Create a direct reference to the function call in order to use with async
@@ -205,9 +206,18 @@ void Simulator::updateGroups(long time)
 
     while (end <= m_detectors.size())
     {
+        //cout << "Processing from node " << start << " to " << end << endl;
         threads.push_back(async(launch::async, func, time, m_detectors.begin()+start, m_detectors.begin()+end));
+        if (end == m_detectors.size())
+        {
+            break;
+        }
         start += nodesPerThread;
         end += nodesPerThread;
+        if (end > m_detectors.size())
+        {
+            end = m_detectors.size();
+        }
     }
     for(const auto &t: threads)
     {
