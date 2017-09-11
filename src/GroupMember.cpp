@@ -13,6 +13,15 @@ GroupMember::GroupMember(int nid):
 
 }
 
+GroupMember::GroupMember(const GroupMember &other):
+    m_nid{other.m_nid},
+    m_responseCounter{other.m_responseCounter},
+    m_failureCounter{other.m_failureCounter},
+    m_isActive{other.m_isActive}
+{
+
+}
+
 int GroupMember::id() const {
     return m_nid;
 }

@@ -10,6 +10,7 @@ class GroupMember final
 {
 public:
     explicit GroupMember(int nid);
+    GroupMember(const GroupMember &other);
     ~GroupMember() = default;
 
     int id() const;

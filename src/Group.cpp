@@ -16,6 +16,16 @@ Group::Group():
 
 }
 
+Group::Group(const Group &other):
+    m_created{other.created()},
+    m_destroyed{other.destroyed()}
+{
+    for (const auto &pair: other.m_members)
+    {
+        m_members.insert(std::make_pair(pair.first, std::make_unique<GroupMember>(*pair.second)));
+    }
+}
+
 std::set<int> Group::memberKeys() const
 {
     return ext::getKeys(m_members);
@@ -84,5 +94,10 @@ std::map<int, std::unique_ptr<GroupMember>>::iterator Group::begin()
 std::map<int, std::unique_ptr<GroupMember>>::iterator Group::end()
 {
     return m_members.end();
+}
+
+bool Group::hasTimeIntersection(const Group &other) const
+{
+    return !(other.destroyed() < created() || other.created() > destroyed());
 }
 

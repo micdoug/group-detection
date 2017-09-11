@@ -11,6 +11,7 @@ class Group final
 {
 public:
     Group();
+    Group(const Group &other);
     ~Group() = default;
 
     std::set<int> memberKeys() const;
@@ -21,6 +22,7 @@ public:
     void addMember(const int id);
     void removeMember(const int id);
     int size() const;
+    bool hasTimeIntersection(const Group &other) const;
     std::string to_string() const;
 
     std::map<int, std::unique_ptr<GroupMember>>::iterator begin();

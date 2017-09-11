@@ -117,56 +117,57 @@ void Simulator::run()
         updateGroups(currentTime);
     }
 
-    cout << "Completed." 
-         << endl
-         << "Writing output..."
-         << endl;
+    cout << "Combining detected groups..." << endl;
+    combineGroups();
+    cout << "Unifying groups..." << endl;
+    unifyGroups();
+    cout << "Completed..." << endl;
     
-    ofstream output(m_outputFile, ios::trunc);
-    if (!output.is_open())
-    {
-        cerr << "Error while opening the output file. Detail: " << endl
-             << strerror(errno) << endl; 
-        return;
-    }
+    // ofstream output(m_outputFile, ios::trunc);
+    // if (!output.is_open())
+    // {
+    //     cerr << "Error while opening the output file. Detail: " << endl
+    //          << strerror(errno) << endl; 
+    //     return;
+    // }
 
-    output << "{" << endl;
+    // output << "{" << endl;
 
-    int detector_index = 0;
-    for (const auto &detector: m_detectors)
-    {
-        output << '"' << detector->node().id() << "\": [" 
-               << endl;
-        int index = 0;
-        for (const auto &group: detector->groupHistory())
-        {
-            output << "{" << endl
-                   << "\"created\": " << group->created() << "," 
-                   << endl 
-                   << "\"destroyed\": " << group->destroyed() << ","
-                   << endl
-                   << "\"members\": "
-                   << ext::to_string(group->memberKeys()) 
-                   << endl
-                   << "}";
-                   if (index < (detector->groupHistory().size()-1))
-                   {
-                        output << ",";
-                   }
-                   output << endl;
-            index++;
-        }
-        output << "]";
-        if (detector_index < (m_detectors.size()-1))
-        {
-            output << ",";
-        }
-        output << endl;
+    // int detector_index = 0;
+    // for (const auto &detector: m_detectors)
+    // {
+    //     output << '"' << detector->node().id() << "\": [" 
+    //            << endl;
+    //     int index = 0;
+    //     for (const auto &group: detector->groupHistory())
+    //     {
+    //         output << "{" << endl
+    //                << "\"created\": " << group->created() << "," 
+    //                << endl 
+    //                << "\"destroyed\": " << group->destroyed() << ","
+    //                << endl
+    //                << "\"members\": "
+    //                << ext::to_string(group->memberKeys()) 
+    //                << endl
+    //                << "}";
+    //                if (index < (detector->groupHistory().size()-1))
+    //                {
+    //                     output << ",";
+    //                }
+    //                output << endl;
+    //         index++;
+    //     }
+    //     output << "]";
+    //     if (detector_index < (m_detectors.size()-1))
+    //     {
+    //         output << ",";
+    //     }
+    //     output << endl;
 
-        detector_index++;
-    }
+    //     detector_index++;
+    // }
 
-    output << "}";
+    // output << "}";
     
 }
 
@@ -231,4 +232,239 @@ void Simulator::updateGroups(long time, std::vector<std::unique_ptr<GroupDetecti
     {
         (*it)->process(time);
     }
+}
+
+void Simulator::combineGroups()
+{
+    cout << "Analisando " << m_detectors.size() << " detectores de grupos" << endl;
+    // Para cada dispositivo da rede
+    for (const auto &detector: m_detectors)
+    {
+        // Para cada grupo daquele dispositivo
+        for (const auto &group: detector->groupHistory())
+        {
+            bool added = false;
+            // Verifica se existe interseção de tempo
+            for (int i=0; i<m_combinedGroups.size(); ++i)
+            {
+                // Se o grupo 
+                if (m_combinedGroups[i]->created() > group->destroyed())
+                {
+                    break;
+                }
+                // Se existe a interseção, verifica a correlação entre membros do grupo
+                else if (m_combinedGroups[i]->hasTimeIntersection(*group))
+                {
+                    auto member_intersec = ext::set_intersection(m_combinedGroups[i]->memberKeys(), group->memberKeys());
+                    auto member_union = ext::set_union(m_combinedGroups[i]->memberKeys(), group->memberKeys());
+                    double correlation = member_intersec.size()*1.0/member_union.size();
+                    if (correlation >= 0.5)
+                    {
+                        auto new_nodes = ext::set_difference(group->memberKeys(), m_combinedGroups[i]->memberKeys());
+                        //cout << ext::to_string(m_combinedGroups[i]->memberKeys()) << endl;
+                        //cout << "Adicionando " << ext::to_string(new_nodes) << endl;
+                        for (auto node: new_nodes)
+                        {
+                            m_combinedGroups[i]->addMember(node);
+                        }
+                        if (m_combinedGroups[i]->created() > group->created())
+                        {
+                            //cout << "Criação ajustando para " << group->created() << endl;
+                            m_combinedGroups[i]->setCreated(group->created());
+                            if (m_combinedGroups[i]->created() == -1)
+                            {
+                                throw std::runtime_error("-1");
+                            }
+                        }
+                        if (m_combinedGroups[i]->destroyed() << group->destroyed())
+                        {
+                            //cout << "Destruição ajustando para " << group->destroyed() << endl;
+                            m_combinedGroups[i]->setDestroyed(group->destroyed());
+                        }
+                        added = true;
+                        break;
+                    }
+                }
+            }
+            // cria nova entrada para o grupo ordenada pelo tempo de criação
+            if (!added)
+            {
+                int i = 0;
+                for (;i<m_combinedGroups.size(); ++i)
+                {
+                    if (m_combinedGroups[i]->created() > group->created())
+                    {
+                        break;
+                    }
+                }
+                m_combinedGroups.insert(m_combinedGroups.begin()+i, make_unique<Group>(*group));
+                // cout << "Foi inserido o grupo " 
+                //      << ext::to_string(m_combinedGroups[i]->memberKeys()) 
+                //      << " que foi criado em " 
+                //      << m_combinedGroups[i]->created()
+                //      << endl;
+                     if (m_combinedGroups[i]->created() == -1)
+                     {
+                         throw std::runtime_error("-1");
+                     }
+            }
+        }
+    }
+
+    // Escreve a resposta no arquivo de saída
+    // ofstream outfile(m_outputFile, ios::trunc);
+    // if (!outfile.is_open())
+    // {
+    //     cerr << "Error while opening the output file. Detail: " << endl
+    //          << strerror(errno) << endl; 
+    //     return;
+    // }
+    // outfile << "[" << endl;
+    // int totalGroups = m_combinedGroups.size();
+    // for (const auto &cgroup: m_combinedGroups)
+    // {
+    //     totalGroups--;
+    //     outfile << "{" << endl;
+    //     outfile << "\"start\": " << cgroup->created() << "," << endl;
+    //     outfile << "\"end\": " << cgroup->destroyed() << "," << endl;
+    //     outfile << "\"members\": [ ";
+    //     auto members = cgroup->memberKeys();
+    //     int total = members.size();
+    //     for(const auto &m: members)
+    //     {
+    //         --total;
+    //         if (total)
+    //         {
+    //             outfile << m << ", ";
+    //         }
+    //         else
+    //         {
+    //             outfile << m;
+    //         }
+    //     }
+    //     outfile << " ]" << endl;
+    //     if (totalGroups)
+    //     {
+    //         outfile << "}," << endl;
+    //     }
+    //     else 
+    //     {
+    //         outfile << "}" << endl;
+    //     }
+    // }
+    // outfile << "]" << endl;
+
+    
+}
+
+void Simulator::unifyGroups()
+{
+    while (m_combinedGroups.size())
+    {
+        cout << "Remaining " << m_combinedGroups.size() << " groups." << endl;
+        vector<int> remove = {0};
+        auto &group = m_combinedGroups[0];
+        UnifiedGroup ugroup(group->memberKeys());
+        ugroup.addEncounter(group->created(), group->destroyed());
+        for (int i=1; i<m_combinedGroups.size();++i)
+        {
+            if (ugroup.hasIntersection(m_combinedGroups[i]->created(), m_combinedGroups[i]->destroyed()))
+            {
+                continue;
+            }
+            auto mintersec = ext::set_intersection(ugroup.members(), m_combinedGroups[i]->memberKeys());
+            auto munion = ext::set_union(ugroup.members(), m_combinedGroups[i]->memberKeys());
+            double proportion = mintersec.size()*1.0/munion.size();
+            if (proportion >= 0.5)
+            {
+                ugroup.addEncounter(m_combinedGroups[i]->created(), m_combinedGroups[i]->destroyed());
+                auto new_nodes = ext::set_difference(m_combinedGroups[i]->memberKeys(), ugroup.members());
+                for (auto node: new_nodes)
+                {
+                    ugroup.addMember(node);
+                }
+                remove.insert(remove.begin(), i);
+            }
+        }
+        m_unifiedGroups.push_back(make_unique<UnifiedGroup>(ugroup));
+        for (auto r: remove)
+        {
+            m_combinedGroups.erase(m_combinedGroups.begin()+r);
+        }
+    }
+
+
+    // Escreve a resposta no arquivo de saída
+    ofstream outfile(m_outputFile, ios::trunc);
+    if (!outfile.is_open())
+    {
+        cerr << "Error while opening the output file. Detail: " << endl
+             << strerror(errno) << endl; 
+        return;
+    }
+    outfile << "[" << endl;
+    int totalGroups = m_unifiedGroups.size();
+    for (const auto &ugroup: m_unifiedGroups)
+    {
+        totalGroups--;
+        outfile << "{" << endl;
+
+        outfile << "\"start\": [";
+        int totalEncounters = ugroup->encounters().size();
+        for (const auto &encounter: ugroup->encounters())
+        {
+            totalEncounters--;
+            if (totalEncounters)
+            {
+                outfile << encounter.start() << ", ";
+            }
+            else
+            {
+                outfile << encounter.start();
+            }
+        }
+        outfile << " ]," << endl;
+
+        outfile << "\"end\": [";
+        totalEncounters = ugroup->encounters().size();
+        for (const auto &encounter: ugroup->encounters())
+        {
+            totalEncounters--;
+            if (totalEncounters)
+            {
+                outfile << encounter.end() << ", ";
+            }
+            else
+            {
+                outfile << encounter.end();
+            }
+        }
+        outfile << " ]," << endl;
+
+        outfile << "\"members\": [ ";
+        auto members = ugroup->members();
+        int total = members.size();
+        for(const auto &m: members)
+        {
+            --total;
+            if (total)
+            {
+                outfile << m << ", ";
+            }
+            else
+            {
+                outfile << m;
+            }
+        }
+        outfile << " ]" << endl;
+        if (totalGroups)
+        {
+            outfile << "}," << endl;
+        }
+        else 
+        {
+            outfile << "}" << endl;
+        }
+    }
+    outfile << "]" << endl;
 }

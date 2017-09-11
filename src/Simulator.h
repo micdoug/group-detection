@@ -6,6 +6,7 @@
 #include <memory>
 #include "GroupDetection.h"
 #include "Connection.h"
+#include "UnifiedGroup.h"
 
 class Simulator final
 {
@@ -20,6 +21,8 @@ private:
     void processConnection(const Connection &conn);
     void updateGroups(long time);
     void updateGroups(long time, std::vector<std::unique_ptr<GroupDetection>>::iterator begin, std::vector<std::unique_ptr<GroupDetection>>::iterator end);
+    void combineGroups();
+    void unifyGroups();
 
     long m_timeStep;
     long m_duration;
@@ -27,6 +30,8 @@ private:
     std::string m_inputFile;
     std::string m_outputFile;
     std::vector<std::unique_ptr<GroupDetection>> m_detectors;
+    std::vector<std::unique_ptr<UnifiedGroup>> m_unifiedGroups;
+    std::vector<std::unique_ptr<Group>> m_combinedGroups;
 };
 
 #endif

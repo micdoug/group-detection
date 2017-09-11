@@ -21,6 +21,7 @@ public:
     void process(long time);
     Group &currentGroup();
     Group &transientGroup();
+    void clear();
 
     // Static members
     static int ms_threshold;

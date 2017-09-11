@@ -137,6 +137,10 @@ void GroupDetection::process(long time)
     {
         //cout << "Destroying group" << endl;
         currentGroup().setDestroyed(time);
+        if (m_currentGroup->created() == -1)
+        {
+            throw std::runtime_error("A group must have a creation time greater than -1");
+        }
         m_groupHistory.push_back(std::move(m_currentGroup));
         // Resets current group and transient group
         m_currentGroup = make_unique<Group>();
@@ -146,4 +150,13 @@ void GroupDetection::process(long time)
         m_transientGroup = make_unique<Group>();
     }
     //cout << endl << endl;
+}
+
+void GroupDetection::clear()
+{
+    m_currentGroup = make_unique<Group>();
+    m_currentGroup->setCreated(0);
+    m_transientGroup = make_unique<Group>();
+    m_transientGroup->setCreated(0);
+    m_groupHistory.clear();
 }
