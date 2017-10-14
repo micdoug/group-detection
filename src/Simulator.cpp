@@ -9,6 +9,7 @@
 #include <future>
 #include <cmath>
 #include <functional>
+#include <cstring>
 
 using namespace std;
 
@@ -276,7 +277,7 @@ void Simulator::combineGroups()
                                 throw std::runtime_error("-1");
                             }
                         }
-                        if (m_combinedGroups[i]->destroyed() << group->destroyed())
+                        if (m_combinedGroups[i]->destroyed() < group->destroyed())
                         {
                             //cout << "Destruição ajustando para " << group->destroyed() << endl;
                             m_combinedGroups[i]->setDestroyed(group->destroyed());

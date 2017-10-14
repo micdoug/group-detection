@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.8)
 project(group_detection)
 
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 file(GLOB SOURCE_FILES
     "*.h"
@@ -11,4 +12,7 @@ file(GLOB SOURCE_FILES
 
 include_directories("../libs")
 
-add_executable(group_detection ${SOURCE_FILES})
+add_executable(group-detection ${SOURCE_FILES})
+
+find_package (Threads)
+target_link_libraries (group-detection ${CMAKE_THREAD_LIBS_INIT})
